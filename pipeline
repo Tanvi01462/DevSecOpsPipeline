@@ -1,0 +1,115 @@
+// This declarative Jenkins pipeline automates the CI/CD workflow
+pipeline {
+    // Run on any available Jenkins agent (master or worker node)
+    agent any
+
+    // Automatically check GitHub for new commits every 5 minutes
+    triggers {
+        pollSCM('H/5 * * * *')  // H = hash-based random delay to avoid collisions
+    }
+
+    // Define all stages of the pipeline here
+    stages {
+
+        /*
+         * 🔨 Stage 1 - Build
+         * This stage compiles the Java source code and packages it into a deployable .jar or .war file.
+         * It uses Maven's 'clean package' command to:
+         * - Remove any previous build artifacts (clean)
+         * - Compile source files
+         * - Run build lifecycle and package the app
+         */
+        stage('Build') {
+            steps {
+                echo '🔨 Stage 1: Building the application using Maven...'
+                sh 'mvn clean package'
+            }
+        }
+
+        /*
+         * ✅ Stage 2 - Unit and Integration Tests
+         * This stage runs automated test cases using Maven's test phase.
+         * It typically includes:
+         * - Unit tests: test individual components/methods
+         * - Integration tests: test interaction between modules
+         */
+        stage('Unit and Integration Tests') {
+            steps {
+                echo '✅ Stage 2: Running unit and integration tests...'
+                sh 'mvn test'
+            }
+        }
+
+        /*
+         * 🧹 Stage 3 - Code Analysis
+         * This stage performs static code analysis to identify code smells, bugs, and maintainability issues.
+         * Tools like SonarQube or SonarCloud are commonly used.
+         * You must configure your Sonar token and project key beforehand.
+         */
+        stage('Code Analysis') {
+            steps {
+                echo '🧹 Stage 3: Performing static code analysis using SonarQube/SonarCloud...'
+                sh 'mvn sonar:sonar -Dsonar.projectKey=your-project-key -Dsonar.organization=your-org -Dsonar.login=your-token'
+            }
+        }
+
+        /*
+         * 🔍 Stage 4 - Security Scan
+         * This stage identifies known vulnerabilities in project dependencies.
+         * You can use OWASP Dependency-Check or similar tools.
+         * Results can be generated in HTML or XML formats for reporting.
+         */
+        stage('Security Scan') {
+            steps {
+                echo '🔍 Stage 4: Scanning for known security vulnerabilities...'
+                sh 'dependency-check.sh --project MyApp --scan . --format HTML'
+            }
+        }
+
+        /*
+         * 🚀 Stage 5 - Deploy to Staging
+         * This stage deploys the application to a staging environment for further testing.
+         * In real setups, it may use SCP, SSH, or CI tools to deploy to Docker/Kubernetes.
+         */
+        stage('Deploy to Staging') {
+            steps {
+                echo '🚀 Stage 5: Deploying application to the staging server...'
+                sh 'scp target/myapp.jar user@staging-server:/opt/app'
+            }
+        }
+
+        /*
+         * 🔁 Stage 6 - Integration Tests on Staging
+         * Once the app is deployed to staging, this stage runs API or end-to-end tests.
+         * Tools like Newman (for Postman collections) or Selenium can be used.
+         */
+        stage('Integration Tests on Staging') {
+            steps {
+                echo '🔁 Stage 6: Running integration tests on the staging environment...'
+                sh 'newman run tests/staging.postman_collection.json'
+            }
+        }
+
+        /*
+         * 🏁 Stage 7 - Deploy to Production
+         * If all previous stages succeed, the app is deployed to the live production environment.
+         * In real-world pipelines, this might require approval or blue/green deployment.
+         */
+        stage('Deploy to Production') {
+            steps {
+                echo '🏁 Stage 7: Deploying application to production server...'
+                sh 'scp target/myapp.jar user@prod-server:/opt/app'
+            }
+        }
+    }
+
+    // Post section defines what happens after pipeline execution
+    post {
+        success {
+            echo '✅ Pipeline completed successfully! All stages passed.'
+        }
+        failure {
+            echo '❌ Pipeline failed. Please check the console output for errors.'
+        }
+    }
+}
