@@ -22,7 +22,7 @@ pipeline {
         stage('Build') {
             steps {
                 echo '🔨 Stage 1: Building the application using Maven...'
-                sh 'mvn clean package'
+                bat 'mvn clean package'
             }
         }
 
@@ -36,7 +36,7 @@ pipeline {
         stage('Unit and Integration Tests') {
             steps {
                 echo '✅ Stage 2: Running unit and integration tests...'
-                sh 'mvn test'
+                bat 'mvn test'
             }
         }
 
@@ -49,7 +49,7 @@ pipeline {
         stage('Code Analysis') {
             steps {
                 echo '🧹 Stage 3: Performing static code analysis using SonarQube/SonarCloud...'
-                sh 'mvn sonar:sonar -Dsonar.projectKey=your-project-key -Dsonar.organization=your-org -Dsonar.login=your-token'
+                bat 'mvn sonar:sonar -Dsonar.projectKey=your-project-key -Dsonar.organization=your-org -Dsonar.login=your-token'
             }
         }
 
@@ -62,7 +62,7 @@ pipeline {
         stage('Security Scan') {
             steps {
                 echo '🔍 Stage 4: Scanning for known security vulnerabilities...'
-                sh 'dependency-check.sh --project MyApp --scan . --format HTML'
+                bat 'dependency-check.bat --project MyApp --scan . --format HTML'
             }
         }
 
@@ -74,7 +74,7 @@ pipeline {
         stage('Deploy to Staging') {
             steps {
                 echo '🚀 Stage 5: Deploying application to the staging server...'
-                sh 'scp target/myapp.jar user@staging-server:/opt/app'
+                bat 'scp target/myapp.jar user@staging-server:/opt/app'
             }
         }
 
@@ -86,7 +86,7 @@ pipeline {
         stage('Integration Tests on Staging') {
             steps {
                 echo '🔁 Stage 6: Running integration tests on the staging environment...'
-                sh 'newman run tests/staging.postman_collection.json'
+                bat 'newman run tests/staging.postman_collection.json'
             }
         }
 
@@ -98,7 +98,7 @@ pipeline {
         stage('Deploy to Production') {
             steps {
                 echo '🏁 Stage 7: Deploying application to production server...'
-                sh 'scp target/myapp.jar user@prod-server:/opt/app'
+                bat 'scp target/myapp.jar user@prod-server:/opt/app'
             }
         }
     }
